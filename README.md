@@ -65,10 +65,15 @@ Run the `assistant.py` script to launch the AI Chat Assistant:
 python assistant.py
 ```
 
-<img width="580" alt="assistant py" src="https://github.com/lamaranelson/simple_assistant/assets/65568691/45927483-5fd8-4aeb-82f2-c0654e5661e5">
-
-
 Once the application is running:
 - Select the AI provider (Azure or OpenAI) from the dropdown menu.
 - Choose the desired AI model from the second dropdown menu.
 - Type your message in the input box and press Enter or click the "Send" button to get a response from the AI.
+
+
+<img width="499" alt="ex1" src="https://github.com/lamaranelson/simple_assistant/assets/65568691/73534986-f585-4bc4-af95-9f40bdfc94fa">
+
+
+<img width="497" alt="ex2" src="https://github.com/lamaranelson/simple_assistant/assets/65568691/cbec434f-27b0-4168-9741-54f73d724c63">
+
+
