@@ -52,6 +52,8 @@ def display_streaming_content(chat_area, chunk, window, first_chunk=True):
 
 
 def send_message_streaming_effect(user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var, temperature_var):
+    SOME_THRESHOLD = 50  # Adjust this value as needed
+    SOME_DELAY = 500  # Adjust this value as needed
     user_message = user_input.get("1.0", tk.END).strip()
     user_input.delete("1.0", tk.END)
     if user_message == '':
@@ -86,15 +88,33 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
         )
 
         assistant_response = []
+        buffer = ""  # Initialize an empty buffer
         first = True
         for i in response:
             if i.get("choices") and "content" in i["choices"][0].get("delta", {}):
-                print(i["choices"][0]["delta"]["content"])
-                assistant_response.append(i["choices"][0]["delta"]["content"])
-                display_streaming_content(
-                    chat_area, i["choices"][0]["delta"]["content"], window=window, first_chunk=first)
-                if first:
+                content = i["choices"][0]["delta"]["content"]
+                print(content)
+                buffer += content  # Add content to the buffer
+
+                # Split the buffer into words
+                words = buffer.split()
+                # Stream each word individually
+                # Exclude the last word in case the sentence is not finished
+                for word in words[:-1]:
+                    assistant_response.append(word)
+                    display_streaming_content(
+                        chat_area, word + ' ', window=window, first_chunk=first)
                     first = False
+                    window.after(SOME_DELAY, window.update)
+                    window.update_idletasks()  # Update the GUI to refresh the text area
+                # Keep the last word in the buffer
+                buffer = words[-1] if words else ""
+
+        # If there's any remaining content in the buffer, display it
+        if buffer:
+            assistant_response.append(buffer)
+            display_streaming_content(
+                chat_area, buffer + ' ', window=window, first_chunk=first)
 
         conversation_history.append(
             {"role": "assistant", "content": ''.join(assistant_response)})
