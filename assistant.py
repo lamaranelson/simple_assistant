@@ -1,5 +1,6 @@
 import os
 import openai
+import importlib
 import tkinter as tk
 from tkinter import scrolledtext, ttk
 import tiktoken
@@ -10,6 +11,11 @@ load_dotenv()
 openai_api_key = os.getenv('OPENAI_API_KEY')
 azure_api_key = os.getenv('AZURE_API_KEY')
 azure_api_base = os.getenv('AZURE_API_BASE')
+
+
+def reset_openai_client():
+    global openai
+    openai = importlib.reload(openai)
 
 
 def split_with_separator(input_string):
@@ -62,11 +68,12 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
 
     if use_azure:
         openai.api_type = "azure"
-        openai.api_base = azure_api_base
-        openai.api_version = "2023-07-01-preview"
+        openai.api_base = azure_api_base  # Azure-specific API base
+        openai.api_version = "2023-07-01-preview"  # Azure-specific API version
         openai.api_key = azure_api_key
         api_param_name = 'engine'
     else:
+        reset_openai_client()
         openai.api_key = openai_api_key
         api_param_name = 'model'
 
@@ -178,7 +185,7 @@ def create_gui():
     model_dropdown['values'] = (
         'gpt-3.5-turbo-1106',
         'gpt-4-0613',
-        'gpt-4-32k-0613',
+        # 'gpt-4-32k-0613',
         'gpt-4-1106-preview'
     )  # default to OpenAI models
     model_dropdown.set('gpt-4-1106-preview')  # default value
