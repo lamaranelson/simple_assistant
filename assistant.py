@@ -45,7 +45,7 @@ def display_streaming_content(chat_area, chunk, window, first_chunk=True):
     window.update_idletasks()  # Update the GUI to refresh the text area
 
 
-def send_message_streaming_effect(user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var):
+def send_message_streaming_effect(user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var, temperature_var):
     user_message = user_input.get("1.0", tk.END).strip()
     user_input.delete("1.0", tk.END)
     if user_message == '':
@@ -58,6 +58,7 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
     # Update to use the selected provider and model
     use_azure = provider_var.get() == 'Azure'
     api_param_value = model_var.get()
+    temperature = temperature_var.get()
 
     if use_azure:
         openai.api_type = "azure"
@@ -72,7 +73,7 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
     try:
         response = openai.ChatCompletion.create(
             **{api_param_name: api_param_value},
-            temperature=0.2,
+            temperature=temperature,  # Use the temperature value from the slider
             messages=conversation_history,
             stream=True
         )
@@ -99,8 +100,6 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
 
     except openai.error.OpenAIError as e:
         chat_area.insert(tk.END, f"\nAssistant Error: {str(e)}\n", 'error')
-
-    user_input.bind('<Return>', lambda event: send_message_streaming_effect)
 
 
 def insert_newline(event):
@@ -153,6 +152,10 @@ def create_gui():
     user_input.bind('<Shift-Return>', insert_newline)
     user_input.bind('<Command-z>', undo)
 
+    # Bind the Return key to the send_message_streaming_effect function
+    user_input.bind('<Return>', lambda event: send_message_streaming_effect(
+        user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var, temperature_var))
+
     provider_frame = tk.Frame(main_frame)
     provider_frame.grid(row=5, column=0, sticky='ew', padx=5, pady=5)
 
@@ -163,7 +166,7 @@ def create_gui():
     provider_dropdown.set('OpenAI')  # default value
     provider_dropdown.pack(side=tk.LEFT)
     user_input.bind('<Return>', lambda event: send_message_streaming_effect(
-        user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var))
+        user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var, temperature_var))
 
     # Dropdown for selecting the model
     model_frame = tk.Frame(main_frame)
@@ -181,7 +184,33 @@ def create_gui():
     model_dropdown.set('gpt-4-1106-preview')  # default value
     model_dropdown.pack(side=tk.LEFT)
 
-    # Update the model dropdown based on provider selection
+    # Create a variable to hold the temperature value
+    temperature_var = tk.DoubleVar()
+    temperature_var.set(0.5)  # default value
+    # Create a style
+    style = ttk.Style(window)
+    # Set the theme to "clam" which supports the fieldbackground option
+    style.theme_use('clam')
+    # Configure the HScale (horizontal scale) style
+    style.configure('TScale', troughcolor='white',
+                    background='yellow', sliderrelief='flat')
+
+    temperature_frame = tk.Frame(main_frame)
+    temperature_frame.grid(row=7, column=0, sticky='ew', padx=5, pady=5)
+
+    # Label to display the temperature value
+    temperature_label = tk.Label(
+        temperature_frame, text=f"Temperature: {temperature_var.get():.2f}")
+    temperature_label.pack(side=tk.LEFT)
+
+    def update_temperature_label(value):
+        temperature_label.config(text=f"Temperature: {float(value):.2f}")
+    # Create the slider with the new style and command to update the label
+    temperature_slider = ttk.Scale(temperature_frame, from_=0.0, to=1.0,
+                                   orient=tk.HORIZONTAL, variable=temperature_var, style='TScale',
+                                   command=update_temperature_label)
+    temperature_slider.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
     def update_model_dropdown(event):
         provider = provider_var.get()
         if provider == 'Azure':
@@ -203,7 +232,7 @@ def create_gui():
 
     provider_dropdown.bind('<<ComboboxSelected>>', update_model_dropdown)
     send_button = tk.Button(main_frame, text="Send", command=lambda: send_message_streaming_effect(
-        user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var))
+        user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var, temperature_var))
     send_button.grid(row=4, column=0, padx=5, pady=5)
 
     window.mainloop()
