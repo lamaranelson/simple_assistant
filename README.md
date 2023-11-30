@@ -1,6 +1,6 @@
 # Simple Assistant
 
-This AI Chat Assistant allows users to interact with an AI model through a graphical user interface (GUI). It supports both OpenAI and Azure AI models, enabling users to choose their preferred provider and model for generating responses.
+This AI Chat Assistant allows users to interact with an AI model through a Tkinter GUI. It supports both OpenAI and Azure AI models, enabling users to choose their preferred provider and model for generating responses.
 
 ## Features
 
