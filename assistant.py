@@ -60,7 +60,6 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
         return
 
     chat_area.insert(tk.END, f"\nYou: {user_message}\n", 'user')
-
     conversation_history.append({"role": "user", "content": user_message})
 
     # Update to use the selected provider and model
@@ -70,8 +69,8 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
 
     if use_azure:
         openai.api_type = "azure"
-        openai.api_base = azure_api_base  # Azure-specific API base
-        openai.api_version = "2023-07-01-preview"  # Azure-specific API version
+        openai.api_base = azure_api_base  
+        openai.api_version = "2023-07-01-preview"  
         openai.api_key = azure_api_key
         api_param_name = 'engine'
     else:
@@ -82,23 +81,22 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
     try:
         response = openai.ChatCompletion.create(
             **{api_param_name: api_param_value},
-            temperature=temperature,  # Use the temperature value from the slider
+            temperature=temperature,  
             messages=conversation_history,
             stream=True
         )
 
         assistant_response = []
-        buffer = ""  # Initialize an empty buffer
+        buffer = "" 
         first = True
         for i in response:
             if i.get("choices") and "content" in i["choices"][0].get("delta", {}):
                 content = i["choices"][0]["delta"]["content"]
                 print(content)
-                buffer += content  # Add content to the buffer
+                buffer += content  
 
                 # Split the buffer into words
                 words = buffer.split()
-                # Stream each word individually
                 # Exclude the last word in case the sentence is not finished
                 for word in words[:-1]:
                     assistant_response.append(word)
@@ -106,7 +104,7 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
                         chat_area, word + ' ', window=window, first_chunk=first)
                     first = False
                     window.after(SOME_DELAY, window.update)
-                    window.update_idletasks()  # Update the GUI to refresh the text area
+                    window.update_idletasks()  
                 # Keep the last word in the buffer
                 buffer = words[-1] if words else ""
 
@@ -190,7 +188,7 @@ def create_gui():
     provider_var = tk.StringVar()
     provider_dropdown = ttk.Combobox(provider_frame, textvariable=provider_var)
     provider_dropdown['values'] = ('Azure', 'OpenAI')
-    provider_dropdown.set('OpenAI')  # default value
+    provider_dropdown.set('OpenAI')  
     provider_dropdown.pack(side=tk.LEFT)
     user_input.bind('<Return>', lambda event: send_message_streaming_effect(
         user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var, temperature_var))
@@ -208,31 +206,26 @@ def create_gui():
         # 'gpt-4-32k-0613',
         'gpt-4-1106-preview'
     )  # default to OpenAI models
-    model_dropdown.set('gpt-4-1106-preview')  # default value
+    model_dropdown.set('gpt-4-1106-preview')  
     model_dropdown.pack(side=tk.LEFT)
 
     # Create a variable to hold the temperature value
     temperature_var = tk.DoubleVar()
-    temperature_var.set(0.5)  # default value
-    # Create a style
+    temperature_var.set(0.5)  
     style = ttk.Style(window)
-    # Set the theme to "clam" which supports the fieldbackground option
     style.theme_use('clam')
-    # Configure the HScale (horizontal scale) style
     style.configure('TScale', troughcolor='white',
                     background='yellow', sliderrelief='flat')
 
     temperature_frame = tk.Frame(main_frame)
     temperature_frame.grid(row=7, column=0, sticky='ew', padx=5, pady=5)
 
-    # Label to display the temperature value
     temperature_label = tk.Label(
         temperature_frame, text=f"Temperature: {temperature_var.get():.2f}")
     temperature_label.pack(side=tk.LEFT)
 
     def update_temperature_label(value):
         temperature_label.config(text=f"Temperature: {float(value):.2f}")
-    # Create the slider with the new style and command to update the label
     temperature_slider = ttk.Scale(temperature_frame, from_=0.0, to=1.0,
                                    orient=tk.HORIZONTAL, variable=temperature_var, style='TScale',
                                    command=update_temperature_label)
@@ -254,7 +247,6 @@ def create_gui():
                 'gpt-4-0613',
                 'gpt-4-1106-preview'
             )
-        # Set to first value in the list
         model_dropdown.set(model_dropdown['values'][0])
 
     provider_dropdown.bind('<<ComboboxSelected>>', update_model_dropdown)

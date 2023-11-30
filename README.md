@@ -66,7 +66,7 @@ python assistant.py
 ```
 
 Once the application is running:
-- Select the AI provider (Azure or OpenAI) from the dropdown menu.
+- Select the LLM provider (Azure or OpenAI) from the dropdown menu.
 - Choose the desired AI model from the second dropdown menu.
 - Type your message in the input box and press Enter or click the "Send" button to get a response from the AI.
 
