@@ -1,12 +1,12 @@
 # Simple Assistant
 
-This AI Chat Assistant allows users to interact with an AI model through a Tkinter GUI. It supports both OpenAI and Azure AI models, enabling users to choose their preferred provider and model for generating responses.
+This LLM based Chat Assistant allows users to interact with an AI model through a Tkinter GUI. It supports both OpenAI and Azure LLM models, enabling users to choose their preferred provider and model for generating responses.
 
 ## Features
 
 - Tkinter GUI
 - Support for multiple models directly from OpenAI or from an Azure instance.
-- Real-time streaming of AI responses.
+- Real-time streaming of LLM responses.
 - Token count tracking for monitoring usage.
 - Customizable system prompt.
 
