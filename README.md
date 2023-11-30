@@ -65,6 +65,9 @@ Run the `assistant.py` script to launch the AI Chat Assistant:
 python assistant.py
 ```
 
+<img width="580" alt="assistant py" src="https://github.com/lamaranelson/simple_assistant/assets/65568691/45927483-5fd8-4aeb-82f2-c0654e5661e5">
+
+
 Once the application is running:
 - Select the AI provider (Azure or OpenAI) from the dropdown menu.
 - Choose the desired AI model from the second dropdown menu.
