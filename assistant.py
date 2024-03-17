@@ -1,5 +1,3 @@
-# This version is hard coded parsing from AI agent response
-
 import os
 import openai
 import importlib
@@ -9,6 +7,7 @@ import tiktoken
 from dotenv import load_dotenv
 import re
 import sys
+import markdown2
 
 sys.setrecursionlimit(3000)  # Increase the recursion limit to 3000
 
@@ -45,47 +44,28 @@ def calc_token_count(input_text: str) -> int:
 conversation_history = []
 
 
+import markdown2  # Make sure to import markdown2 at the top of your file
+
 def display_streaming_content(chat_area, chunk, window, first_chunk=True):
     """
-    Display a chunk of content in chat_area with a delay, properly formatting paragraphs, bullet points, and numbered lists.
-    Adjusts spacing to limit extra lines after paragraphs and numbered points.
+    Display a chunk of content in chat_area, converting Markdown to HTML (or another format) using markdown2.
     """
-    # Split the chunk into lines to check for paragraphs, bullet points, and numbered lists
-    lines = chunk.split('\n')
-    formatted_lines = []
-    previous_line_was_numbered = False
+    # Convert Markdown chunk to HTML
+    html_chunk = markdown2.markdown(chunk)
 
-    for line in lines:
-        # Trim the line to remove leading and trailing spaces
-        line = line.strip()
-        if not line:
-            # Skip empty lines to avoid double spacing
-            continue
+    # Since tkinter doesn't support HTML rendering out of the box, you might want to
+    # strip HTML tags and only display the text content, or use a library like tkhtmlview
+    # to display HTML content in tkinter. Here, we'll just strip HTML tags for simplicity.
+    # For a more sophisticated approach, consider integrating a library that supports HTML.
 
-        # Check if the line starts with a numbered list pattern (e.g., "1. ")
-        if re.match(r'^\d+\.\s', line):
-            if previous_line_was_numbered:
-                # If the previous line was a numbered item, don't add an extra newline
-                formatted_lines.append(line)
-            else:
-                # For the first numbered item, ensure it starts on a new line
-                formatted_lines.append('\n' + line)
-            previous_line_was_numbered = True
-        else:
-            # For non-numbered lines, reset the flag and add the line with a preceding newline if it's not the first
-            if previous_line_was_numbered or (formatted_lines and not formatted_lines[-1].endswith('\n')):
-                formatted_lines.append('\n' + line)
-            else:
-                formatted_lines.append(line)
-            previous_line_was_numbered = False
+    # Strip HTML tags (simple approach, consider using a more robust method for production)
+    text_chunk = re.sub('<[^<]+?>', '', html_chunk)
 
-    # Join the formatted lines back into a single string, ensuring not to start with a newline
-    formatted_chunk = ''.join(formatted_lines).lstrip('\n')
-
+    # The rest of the function remains mostly unchanged, but you use `text_chunk` instead of `chunk`
     if first_chunk:
-        chat_area.insert(tk.END, f"Assistant: {formatted_chunk}\n", 'assistant')
+        chat_area.insert(tk.END, f"Assistant: {text_chunk}\n", 'assistant')
     else:
-        chat_area.insert(tk.END, formatted_chunk + '\n', 'assistant')
+        chat_area.insert(tk.END, text_chunk + '\n', 'assistant')
     chat_area.see(tk.END)
     window.update_idletasks()  # Update the GUI to refresh the text area
 
