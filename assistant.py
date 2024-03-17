@@ -1,3 +1,5 @@
+# This version is hard coded parsing from AI agent response
+
 import os
 import openai
 import importlib
@@ -188,8 +190,8 @@ def create_gui():
 
     chat_area = scrolledtext.ScrolledText(main_frame, width=60, height=30)
     chat_area.grid(row=0, column=0, sticky='nsew', padx=5, pady=5)
-    chat_area.tag_config('user', foreground='black')
-    chat_area.tag_config('assistant', foreground='cyan')
+    chat_area.tag_config('user', foreground='blue')  # Default user color
+    chat_area.tag_config('assistant', foreground='yellow')  # Default assistant color
     chat_area.tag_config('error', foreground='red')
 
     system_prompt_frame = tk.Frame(main_frame)
@@ -299,6 +301,42 @@ def create_gui():
     send_button = tk.Button(main_frame, text="Send", command=lambda: send_message_streaming_effect(
         user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var, temperature_var))
     send_button.grid(row=4, column=0, padx=5, pady=5)
+
+    # Dropdown for selecting the user text color
+    user_color_frame = tk.Frame(main_frame)
+    user_color_frame.grid(row=8, column=0, sticky='ew', padx=5, pady=5)
+
+    tk.Label(user_color_frame, text="User Text Color:").pack(side=tk.LEFT)
+    user_color_var = tk.StringVar()
+    user_color_dropdown = ttk.Combobox(user_color_frame, textvariable=user_color_var)
+    user_color_dropdown['values'] = ('black', 'blue', 'green', 'red')
+    user_color_dropdown.set('blue')  # Set default user color to blue
+    user_color_dropdown.pack(side=tk.LEFT)
+
+    # Dropdown for selecting the assistant (agent) text color
+    agent_color_frame = tk.Frame(main_frame)
+    agent_color_frame.grid(row=9, column=0, sticky='ew', padx=5, pady=5)
+
+    tk.Label(agent_color_frame, text="Assistant Text Color:").pack(side=tk.LEFT)
+    agent_color_var = tk.StringVar()
+    agent_color_dropdown = ttk.Combobox(agent_color_frame, textvariable=agent_color_var)
+    agent_color_dropdown['values'] = ('blue', 'magenta', 'orange', 'yellow')
+    agent_color_dropdown.set('yellow')  # Set default assistant color to yellow
+    agent_color_dropdown.pack(side=tk.LEFT)
+
+    # Function to update text colors based on selection
+    def update_text_colors():
+        user_color = user_color_var.get()
+        agent_color = agent_color_var.get()
+        chat_area.tag_config('user', foreground=user_color)
+        chat_area.tag_config('assistant', foreground=agent_color)
+
+    # Call update_text_colors function when a new color is selected
+    user_color_dropdown.bind('<<ComboboxSelected>>', lambda event: update_text_colors())
+    agent_color_dropdown.bind('<<ComboboxSelected>>', lambda event: update_text_colors())
+
+    # Continue with the rest of your GUI setup code...
+    # This includes setting up other GUI components like input fields, buttons, etc.
 
     window.mainloop()
 
