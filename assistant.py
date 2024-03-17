@@ -5,6 +5,10 @@ import tkinter as tk
 from tkinter import scrolledtext, ttk
 import tiktoken
 from dotenv import load_dotenv
+import re
+import sys
+
+sys.setrecursionlimit(3000)  # Increase the recursion limit to 3000
 
 load_dotenv()
 
@@ -41,15 +45,44 @@ conversation_history = []
 
 def display_streaming_content(chat_area, chunk, window, first_chunk=True):
     """
-    Display a chunk of content in chat_area with a delay.
+    Display a chunk of content in chat_area with a delay, properly formatting paragraphs, bullet points, and numbered lists.
     """
+    # Split the chunk into lines to check for paragraphs, bullet points, and numbered lists
+    lines = chunk.split('\n')
+    formatted_lines = []
+    in_numbered_list = False
+
+    for line in lines:
+        # Check if the line starts with a numbered list pattern (e.g., "1. ")
+        if re.match(r'^\d+\.\s', line):
+            # Add indentation for numbered list items
+            formatted_line = '    ' + line
+            in_numbered_list = True
+        elif line.startswith('- '):
+            # Add indentation for bullet points
+            formatted_line = '    ' + line
+            in_numbered_list = False  # Reset in case we're exiting a numbered list
+        else:
+            # For paragraphs, reset numbered list flag and just use the line as it is
+            in_numbered_list = False
+            formatted_line = line
+
+        formatted_lines.append(formatted_line)
+
+    # Join the formatted lines back into a single string
+    formatted_chunk = '\n'.join(formatted_lines)
+
     if first_chunk:
-        chat_area.insert(tk.END, f"Assistant: {chunk}", 'assistant')
+        chat_area.insert(tk.END, f"Assistant: {formatted_chunk}\n", 'assistant')
     else:
-        chat_area.insert(tk.END, chunk, 'assistant')
+        chat_area.insert(tk.END, formatted_chunk + '\n', 'assistant')
     chat_area.see(tk.END)
     window.update_idletasks()  # Update the GUI to refresh the text area
 
+
+def safe_update(window):
+    if window.winfo_exists():
+        window.update()
 
 def send_message_streaming_effect(user_input, chat_area, system_prompt, token_counter, window, provider_var, model_var, temperature_var):
     SOME_THRESHOLD = 50  # Adjust this value as needed
@@ -88,7 +121,11 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
         )
 
         assistant_response = []
-        buffer = ""  # Initialize an empty buffer
+        # Assuming this is part of the send_message_streaming_effect function
+        # and focusing on the streaming logic
+
+        # Initialize an empty buffer
+        buffer = ""
         first = True
         for i in response:
             if i.get("choices") and "content" in i["choices"][0].get("delta", {}):
@@ -96,25 +133,18 @@ def send_message_streaming_effect(user_input, chat_area, system_prompt, token_co
                 print(content)
                 buffer += content  # Add content to the buffer
 
-                # Split the buffer into words
-                words = buffer.split()
-                # Stream each word individually
-                # Exclude the last word in case the sentence is not finished
-                for word in words[:-1]:
-                    assistant_response.append(word)
-                    display_streaming_content(
-                        chat_area, word + ' ', window=window, first_chunk=first)
+                # Check if the buffer ends with a full stop or newline, indicating the end of a sentence or paragraph
+                if buffer.endswith('.') or buffer.endswith('\n'):
+                    # Process the buffer here (e.g., display it in the chat area)
+                    display_streaming_content(chat_area, buffer, window=window, first_chunk=first)
                     first = False
-                    window.after(SOME_DELAY, window.update)
+                    window.after(SOME_DELAY, lambda: safe_update(window))
                     window.update_idletasks()  # Update the GUI to refresh the text area
-                # Keep the last word in the buffer
-                buffer = words[-1] if words else ""
+                    buffer = ""  # Reset the buffer after processing
 
-        # If there's any remaining content in the buffer, display it
+        # If there's any remaining content in the buffer after the loop, display it
         if buffer:
-            assistant_response.append(buffer)
-            display_streaming_content(
-                chat_area, buffer + ' ', window=window, first_chunk=first)
+            display_streaming_content(chat_area, buffer, window=window, first_chunk=first)
 
         conversation_history.append(
             {"role": "assistant", "content": ''.join(assistant_response)})
@@ -150,8 +180,8 @@ def create_gui():
 
     chat_area = scrolledtext.ScrolledText(main_frame, width=60, height=30)
     chat_area.grid(row=0, column=0, sticky='nsew', padx=5, pady=5)
-    chat_area.tag_config('user', foreground='cyan')
-    chat_area.tag_config('assistant', foreground='yellow')
+    chat_area.tag_config('user', foreground='black')
+    chat_area.tag_config('assistant', foreground='cyan')
     chat_area.tag_config('error', foreground='red')
 
     system_prompt_frame = tk.Frame(main_frame)
